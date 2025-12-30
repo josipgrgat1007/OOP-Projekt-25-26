@@ -1,0 +1,10 @@
+﻿  BlackjackGame.cpp
+F:\OOP-Projekt-25-26\Blackjack\Blackjack\BlackjackGame.cpp(234,37): error C2065: 'player': undeclared identifier
+  Card.cpp
+  Dealer.cpp
+  Deck.cpp
+  Hand.cpp
+  HumanPlayer.cpp
+  main.cpp
+  Player.cpp
+  Generating Code...
