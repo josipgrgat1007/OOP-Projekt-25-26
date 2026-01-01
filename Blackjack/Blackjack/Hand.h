@@ -16,18 +16,18 @@ public:
 	void addCard(const Card& card);
 	void clear();
 
+	int size() const;
+	const Card& getCard(int index) const;
+
 	int getValue() const;
 	bool isBust() const;
 	bool isBlackjack() const;
-
-	const Card& getCard(int index) const;
-	std::string toString() const;
-	int size() const;
-
 	bool isFirstMove() const;
 
 	bool canSplit() const;
 	Card moveSecondCard();
+
+	std::string toString() const;
 };
 
 #endif

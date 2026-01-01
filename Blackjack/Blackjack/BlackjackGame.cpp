@@ -1,5 +1,7 @@
 ﻿#include "BlackjackGame.h"
+#include "HumanPlayer.h"
 #include <iostream>
+#include <algorithm>
 #include <thread>
 #include <chrono>
 
@@ -19,16 +21,40 @@ BlackjackGame::BlackjackGame()
     }
 }
 
-void BlackjackGame::printDealerHidden() const
+void BlackjackGame::takeBets()
 {
-    const Hand& h = dealer.getHand();
+    for (auto& p : players)
+    {
+        if (p->getMoney() <= 0)
+            continue;
 
-    if (h.size() == 0) return;
+        double amount;
 
-    std::cout << "[?], ";
-    if (h.size() >= 2)
-        std::cout << " " << h.getCard(1).toString();
-    std::cout << "\n";
+        while (true)
+        {
+            std::cout << p->getName()
+                << " ima " << p->getMoney()
+                << ". Unesi ulog: ";
+
+            std::cin >> amount;
+
+            if (amount <= 0)
+            {
+                std::cout << "Ulog mora biti veci od 0.\n";
+            }
+            else if (amount > p->getMoney())
+            {
+                std::cout << "Nemate dovoljno novca. Maksimalno: "
+                    << p->getMoney() << "\n";
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        p->placeBet(amount);
+    }
 }
 
 void BlackjackGame::dealInitial()
@@ -45,6 +71,18 @@ void BlackjackGame::dealInitial()
 
         dealer.hit(deck);
     }
+}
+
+void BlackjackGame::printDealerHidden() const
+{
+    const Hand& h = dealer.getHand();
+
+    if (h.size() == 0) return;
+
+    std::cout << "[?], ";
+    if (h.size() >= 2)
+        std::cout << " " << h.getCard(1).toString();
+    std::cout << "\n";
 }
 
 void BlackjackGame::printInitialHands() const
@@ -218,14 +256,6 @@ void BlackjackGame::playersTurn()
     std::cout << "-------------------------\n";
 }
 
-bool BlackjackGame::anyPlayerAlive() const
-{
-    for (const auto& p : players)
-        if (!p->getHand().isBust())
-            return true;
-    return false;
-}
-
 void BlackjackGame::dealerTurn()
 {
     if (!anyPlayerAlive())
@@ -361,40 +391,13 @@ void BlackjackGame::printResult() const
     }
 }
 
-void BlackjackGame::takeBets()
+bool BlackjackGame::anyPlayerAlive() const
 {
-    for (auto& p : players)
-    {
-        if (p->getMoney() <= 0)
-            continue;
-
-        double amount;
-
-        while (true)
-        {
-            std::cout << p->getName()
-                << " ima " << p->getMoney()
-                << ". Unesi ulog: ";
-
-            std::cin >> amount;
-
-            if (amount <= 0)
-            {
-                std::cout << "Ulog mora biti veci od 0.\n";
-            }
-            else if (amount > p->getMoney())
-            {
-                std::cout << "Nemate dovoljno novca. Maksimalno: "
-                    << p->getMoney() << "\n";
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        p->placeBet(amount);
-    }
+    for (const auto& p : players)
+        for (int i = 0; i < p->getHandsCount(); i++)
+            if (!p->getHandByIndex(i).isBust())
+                return true;
+    return false;
 }
 
 void BlackjackGame::delay(int ms)

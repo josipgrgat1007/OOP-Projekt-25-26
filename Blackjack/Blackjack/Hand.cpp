@@ -15,6 +15,11 @@ int Hand::size() const
 	return static_cast<int>(cards.size());
 }
 
+const Card& Hand::getCard(int index) const
+{
+	return cards.at(index);
+}
+
 int Hand::getValue() const
 {
 	int total = 0;
@@ -59,20 +64,6 @@ bool Hand::isBlackjack() const
 	return (cards.size() == 2 && getValue() == 21);
 }
 
-std::string Hand::toString() const
-{
-	std::string s;
-
-	for (size_t i = 0; i < cards.size(); i++)
-	{
-		s += cards[i].toString();
-		if (i + 1 < cards.size())
-			s += ", ";
-	}
-
-	return s;
-}
-
 bool Hand::isFirstMove() const
 {
 	return cards.size() == 2;
@@ -91,7 +82,16 @@ Card Hand::moveSecondCard()
 	return c;
 }
 
-const Card& Hand::getCard(int index) const
+std::string Hand::toString() const
 {
-	return cards.at(index);
+	std::string s;
+
+	for (size_t i = 0; i < cards.size(); i++)
+	{
+		s += cards[i].toString();
+		if (i + 1 < cards.size())
+			s += ", ";
+	}
+
+	return s;
 }

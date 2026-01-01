@@ -1,6 +1,7 @@
 #include "Deck.h"
 #include <algorithm>
 #include <random>
+#include <stdexcept>
 
 Deck::Deck()
 {

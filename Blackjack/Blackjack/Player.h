@@ -2,8 +2,9 @@
 #define PLAYER_H
 
 #include <string>
-#include "Deck.h"
+
 #include "Hand.h"
+#include "Deck.h"
 #include "Action.h"
 
 class Player
@@ -23,17 +24,18 @@ public:
 
 	Hand& getHand();
 	const Hand& getHand() const;
+
+	virtual void clearHand();
+	void hit(Deck& deck);
 	
 	double getMoney() const { return money; }
 	double getBet() const { return bet; }
-
-	void clearHand();
-	void hit(Deck& deck);
 
 	void placeBet(double amount);
 	void win(double multiplier);
 	void push();
 	void lose();
+
 	void addMoney(double amount);
 	void clearBet();
 	bool addToBet(double amount);

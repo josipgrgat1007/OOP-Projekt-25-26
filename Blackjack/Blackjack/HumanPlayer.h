@@ -1,8 +1,9 @@
 #ifndef HUMANPLAYER_H
 #define HUMANPLAYER_H
 
-#include "Player.h"
 #include <vector>
+
+#include "Player.h"
 
 class HumanPlayer : public Player
 {
@@ -11,6 +12,8 @@ private:
 
 public:
     HumanPlayer(const std::string& name);
+
+    void clearHand() override;
 
     Action decideAction() override;
 

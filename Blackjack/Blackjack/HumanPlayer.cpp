@@ -3,6 +3,12 @@
 
 HumanPlayer::HumanPlayer(const std::string& name) : Player(name){}
 
+void HumanPlayer::clearHand()
+{
+	hand.clear();
+	splitHands.clear();
+}
+
 Action HumanPlayer::decideAction()
 {
 	Hand& hand = getHand();
@@ -34,7 +40,7 @@ Action HumanPlayer::decideAction()
 
 int HumanPlayer::getHandsCount() const
 {
-	return splitHands.empty() ? 1 : (int)splitHands.size();
+	return splitHands.empty() ? 1 : static_cast<int>(splitHands.size());
 }
 
 Hand& HumanPlayer::getHandByIndex(int index)
