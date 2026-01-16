@@ -1,5 +1,7 @@
 #include "Player.h"
 
+#include <stdexcept>
+
 Player::Player(const std::string& name) : name(name) {}
 
 const std::string& Player::getName() const
@@ -29,8 +31,10 @@ void Player::hit(Deck& deck)
 
 void Player::placeBet(double amount)
 {
+    if (amount <= 0)
+        throw std::invalid_argument("Bet mora biti veci od 0.");
     if (amount > money)
-        amount = money;
+        throw std::invalid_argument("Nemate dovoljno novca.");
 
     bet = amount;
     money -= bet;
@@ -39,22 +43,23 @@ void Player::placeBet(double amount)
 void Player::win(double multiplier)
 {
     money += bet * multiplier;
-    bet = 0;
+    clearBet();
 }
 
 void Player::push()
 {
     money += bet;
-    bet = 0;
+    clearBet();
 }
 
 void Player::lose()
 {
-    bet = 0;
+    clearBet();
 }
 
 void Player::addMoney(double amount)
 {
+    if (money <= 0) return;
     money += amount;
 }
 
@@ -65,10 +70,7 @@ void Player::clearBet()
 
 bool Player::addToBet(double amount)
 {
-    if (amount <= 0)
-        return false;
-
-    if (money < amount)
+    if (amount <= 0 || money < amount)
         return false;
 
     money -= amount;

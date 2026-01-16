@@ -15,6 +15,8 @@ public:
 	void reset();
 	void shuffle();
 
+	int remaining() const;
+
 	Card draw();
 	bool empty() const;
 };

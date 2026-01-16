@@ -3,17 +3,24 @@
 
 int main()
 {
-    BlackjackGame game;
+	try
+	{
+        BlackjackGame game;
 
-    char again = 'y';
-    while (again == 'y' || again == 'Y')
-    {
-        if (!game.playRound())
-            break;  // nema vise igraca s novcem
+        char again = 'y';
+        while (again == 'y' || again == 'Y')
+        {
+            if (!game.playRound())
+                break;  // nema vise igraca s novcem
 
-        std::cout << "\nNova runda? (y/n): ";
-        std::cin >> again;
+            std::cout << "\nNova runda? (y/n): ";
+            std::cin >> again;
+        }
+
+        return 0;
     }
-
-    return 0;
+    catch (const std::exception& e)
+    {
+        std::cout << "Fatal error: " << e.what() << "\n";
+    }
 }

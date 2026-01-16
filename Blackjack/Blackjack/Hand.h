@@ -19,6 +19,7 @@ public:
 	int size() const;
 	const Card& getCard(int index) const;
 
+	int getValueForSplit(const Card& c) const;
 	int getValue() const;
 	bool isBust() const;
 	bool isBlackjack() const;

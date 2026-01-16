@@ -32,6 +32,11 @@ void Deck::shuffle()
     std::shuffle(cards.begin(), cards.end(), gen);
 }
 
+int Deck::remaining() const
+{
+    return cards.size();
+}
+
 Card Deck::draw()
 {
     if(cards.empty())

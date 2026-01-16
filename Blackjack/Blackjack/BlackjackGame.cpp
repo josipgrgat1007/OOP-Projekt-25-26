@@ -9,7 +9,11 @@ BlackjackGame::BlackjackGame()
 {
     int n;
     std::cout << "Koliko igraca igra? ";
-    std::cin >> n;
+
+    if (!(std::cin >> n))
+        throw std::runtime_error("Neispravan unos!");
+    if (n <= 0)
+        throw std::runtime_error("Broj igraca mora biti veci od 0!");
 
     for (int i = 0; i < n; i++)
     {
@@ -18,6 +22,43 @@ BlackjackGame::BlackjackGame()
         std::cin >> name;
            
         players.push_back(std::make_unique<HumanPlayer>(name));
+    }
+
+    deck.reset();
+    deck.shuffle();
+}
+
+std::string BlackjackGame::handLabel(const Player& p, int handIndex) const
+{
+    if (p.getHandsCount() > 1)
+        return p.getName() + " [Split " + std::to_string(handIndex + 1) + "]";
+    return p.getName();
+}
+
+void BlackjackGame::printHandLine(const std::string& p, const Hand& h) const
+{
+    std::cout << p << ": " << h.toString()
+        << " (Value = " << h.getValue() << ")\n";
+}
+
+void BlackjackGame::drawWithDelay(const std::string& p)
+{
+    std::cout << p << " vuce kartu...\n";
+    delay(800);
+}
+
+Action BlackjackGame::askHitStand(const std::string& p)
+{
+    while (true)
+    {
+        std::cout << p << " -> [h]it/[s]tand? ";
+        char c;
+        std::cin >> c;
+
+        if (c == 'h' || c == 'H') return Action::Hit;
+        if (c == 's' || c == 'S') return Action::Stand;
+
+        std::cout << "Upisi h ili s.\n";
     }
 }
 
@@ -36,7 +77,13 @@ void BlackjackGame::takeBets()
                 << " ima " << p->getMoney()
                 << ". Unesi ulog: ";
 
-            std::cin >> amount;
+            if (!(std::cin >> amount))
+            {
+                std::cin.clear();
+                std::cin.ignore(10000, '\n');
+                std::cout << "Neispravan unos. Unesi broj.\n";
+                continue;
+            }
 
             if (amount <= 0)
             {
@@ -52,7 +99,6 @@ void BlackjackGame::takeBets()
                 break;
             }
         }
-
         p->placeBet(amount);
     }
 }
@@ -81,7 +127,7 @@ void BlackjackGame::printDealerHidden() const
 
     std::cout << "[?], ";
     if (h.size() >= 2)
-        std::cout << " " << h.getCard(1).toString();
+        std::cout << h.getCard(1).toString();
     std::cout << "\n";
 }
 
@@ -108,88 +154,63 @@ void BlackjackGame::playersTurn()
 
         for (int i = 0; i < p->getHandsCount(); i++)
         {
-            bool splitMode(p->getHandsCount() > 1);
-
+            std::string label = handLabel(*p, i);
             Hand& h0 = p->getHandByIndex(i);
 
-            if (splitMode)
+            if (p->getHandsCount() > 1)
+                printHandLine(label, h0);
+
+            // BLACKJACK
+            if (p->getHandsCount() == 1 && h0.isBlackjack())
             {
-                std::cout << "\n" << p->getName() << " [Split " << (i + 1) << "]: "
-                    << h0.toString() << " (Value = " << h0.getValue() << ")\n";
+                std::cout << label << " ima Blackjack! \n";
+                break;
             }
 
-            //BLACKJACK
-            if (h0.isBlackjack())
-            {
-                if (splitMode)
-                    std::cout << p->getName() << " [Split " << (i + 1) << "] ima Blackjack!\n";
-                else
-                    std::cout << p->getName() << " ima Blackjack!\n";
-
-                std::cout << "WIN (isplata x2.5)\n";
-                p->win(2.5);
-                continue;
-            }
-
-            while (true)
+            while (!p->getHandByIndex(i).isBust())
             {
                 Hand& h = p->getHandByIndex(i);
+                label = handLabel(*p, i);
 
-                if (h.isBust())
-                    break;
-
-                splitMode = (p->getHandsCount() > 1);
-                Action a = Action::Stand;
-
-                if (splitMode)
+                if (h.getValue() == 21)
                 {
-                    std::cout << p->getName() << " [Split " << (i + 1) << "] -> [h]it/[s]tand? ";
+                    std::cout << label << " ima 21 i staje.\n";
+                    break;
+                }
 
-                    char c;
-                    std::cin >> c;
+                Action a = (p->getHandsCount() > 1) ? askHitStand(label) : p->decideAction();
 
-                    if (c == 'h' || c == 'H') a = Action::Hit;
-                    else if (c == 's' || c == 'S') a = Action::Stand;
-                    else
+                // SPLIT
+                if (p->getHandsCount() == 1 && a == Action::Split)
+                {
+                    if (!p->canSplitNow())
                     {
-                        std::cout << "Upisi h ili s.\n";
+                        std::cout << "Split nije moguc (karte nisu iste).\n";
                         continue;
                     }
-                }
-                else
-                {
-                    a = p->decideAction();
-                }
 
-                //SPLIT
-                if (!splitMode && a == Action::Split)
-                {
-                    if (p->canSplitNow() && p->tryStartSplit(deck))
+                    if (p->getMoney() < p->getBet())
+                    {
+                        std::cout << "Split nije moguc (nedovoljno novca).\n";
+                        continue;
+                    }
+
+                    if (p->tryStartSplit(deck))
                     {
                         std::cout << p->getName() << " split-a karte!\n";
-
-                        std::cout << "Split 1: " << p->getHandByIndex(0).toString()
-                            << " (Value = " << p->getHandByIndex(0).getValue() << ")\n";
-                        std::cout << "Split 2: " << p->getHandByIndex(1).toString()
-                            << " (Value = " << p->getHandByIndex(1).getValue() << ")\n";
+                        printHandLine(handLabel(*p, 0), p->getHandByIndex(0));
+                        printHandLine(handLabel(*p, 1), p->getHandByIndex(1));
 
                         continue;
                     }
-                    else
-                    {
-                        std::cout << "Split nije moguc.\n";
-                        continue;
-                    }
+                    std::cout << "Split nije moguc.\n";
                 }
 
-                //DOUBLE DOWN
-                if (!splitMode && a == Action::DoubleDown)
+                // DOUBLE DOWN
+                if (p->getHandsCount() == 1 && a == Action::DoubleDown)
                 {
-                    std::cout << p->getName() << " double down-a!\n";
-
                     double add = p->getBet();
-
-                    std::cout << p->getName() << " ulaze jos " << add << "\n";
+                    std::cout << p->getName() << " double down-a (jos " << add << ").\n";
 
                     if (!p->addToBet(add))
                     {
@@ -197,64 +218,43 @@ void BlackjackGame::playersTurn()
                         continue;
                     }
 
-                    std::cout << p->getName() << " vuce kartu...\n";
-                    delay(800);
+                    drawWithDelay(p->getName());
                     p->hit(deck);
-
-                    Hand& hDD = p->getHandByIndex(0);
-
-                    std::cout << p->getName() << ": " << hDD.toString()
-                        << " (Value = " << hDD.getValue() << ")\n";
+                    printHandLine(p->getName(), p->getHandByIndex(0));
 
                     std::cout << p->getName() << " staje nakon double down-a.\n";
                     break;
                 }
 
-                //STAND
+                // STAND
                 if (a == Action::Stand)
                 {
-                    if (splitMode)
-                        std::cout << p->getName() << " [Split " << (i + 1)
-                        << "] staje (Value = " << h.getValue() << ")\n";
-                    else
-                        std::cout << p->getName() << " staje (Value = " << h.getValue() << ")\n";
-
+                    std::cout << label << " staje (Value = " << h.getValue() << ")\n";
                     break;
                 }
 
-                //HIT
-                if (splitMode)
-                {
-                    std::cout << p->getName() << " [Split " << (i + 1)
-                        << "] vuce kartu...\n";
-                    delay(800);
-                    h.addCard(deck.draw());
-                }
-                else
-                {
-                    std::cout << p->getName() << " vuce kartu...\n";
-                    delay(800);
-                    p->hit(deck);
-                }
+                // HIT
+                drawWithDelay(label);
 
-                std::cout << p->getName();
-                if (splitMode)
-                    std::cout << " [Split " << (i + 1) << "]";
-                std::cout << ": " << h.toString() << " (Value = " << h.getValue() << ")\n";
-            }
-
-            Hand& end = p->getHandByIndex(i);
-            if (end.isBust())
-            {
                 if (p->getHandsCount() > 1)
-                    std::cout << p->getName() << " [Split " << (i + 1) << "] bust!\n";
+                    h.addCard(deck.draw());
                 else
-                    std::cout << p->getName() << " bust!\n";
+                    p->hit(deck);
+
+                printHandLine(label, h);
             }
+
+            if (p->getHandByIndex(i).isBust())
+                std::cout << handLabel(*p, i) << " bust!\n";
+
         }
+
+        delay(1000);
     }
+    
     std::cout << "-------------------------\n";
 }
+
 
 void BlackjackGame::dealerTurn()
 {
@@ -267,6 +267,13 @@ void BlackjackGame::dealerTurn()
     std::cout << "\n=== Dealer otkriva skrivenu kartu. ===\n";
     std::cout << "Dealer: " << dealer.getHand().toString()
         << " (Value = " << dealer.getHand().getValue() << ")\n";
+
+    if (dealer.getHand().isBlackjack())
+    {
+        std::cout << "Dealer ima BLACKJACK!";
+        std::cout << "-------------------------\n";
+        return;
+    }
 
     while (!dealer.getHand().isBust())
     {
@@ -297,98 +304,109 @@ void BlackjackGame::dealerTurn()
     std::cout << "-------------------------\n";
 }
 
-void BlackjackGame::printResult() const
+void BlackjackGame::resolveBets()
 {
+    resultLines.clear();
+
     int dv = dealer.getHand().getValue();
     bool dbust = dealer.getHand().isBust();
+    bool dealerBJ = dealer.getHand().isBlackjack();
 
-    std::cout << "\n=== REZULTATI ===\n";
-    std::cout << "Dealer: "
-        << dealer.getHand().toString()
-        << " (Value=" << dv << ")\n\n";
+    dealerResultLine = "Dealer: " + dealer.getHand().toString() + " (Value = " + std::to_string(dv) + ")";
 
     for (const auto& p : players)
     {
-        if (p->getHandsCount() == 1)
-        {
-            Hand& h = p->getHandByIndex(0);
-
-            std::cout << p->getName() << ": "
-                << h.toString()
-                << " (Value=" << h.getValue() << ") -> ";
-
-            if (h.isBust())
-            {
-                std::cout << "LOSE (Bust)\n";
-                p->lose();
-            }
-            else if (dbust)
-            {
-                std::cout << "WIN (Dealer bust)\n";
-                p->win(2.0);
-            }
-            else if (h.getValue() > dv)
-            {
-                std::cout << "WIN\n";
-                p->win(2.0);
-            }
-            else if (h.getValue() < dv)
-            {
-                std::cout << "LOSE\n";
-                p->lose();
-            }
-            else
-            {
-                std::cout << "PUSH\n";
-                p->push();
-            }
-
-            std::cout << " -> Balance: " << p->getMoney() << "\n\n";
-            continue;
-        }
-
-        std::cout << p->getName() << ":\n";
-
+        bool isSplit = (p->getHandsCount() > 1);
         double baseBet = p->getBet();
+
+        if (isSplit)
+            resultLines.push_back(p->getName() + ":");
 
         for (int i = 0; i < p->getHandsCount(); i++)
         {
             Hand& h = p->getHandByIndex(i);
 
-            std::cout << "  Split " << (i + 1) << ": "
-                << h.toString()
-                << " (Value=" << h.getValue() << ") -> ";
+            std::string outcome;
 
-            if (h.isBust())
+            if (dealerBJ)
             {
-                std::cout << "LOSE (Bust)";
+                if (!isSplit && h.isBlackjack())
+                {
+                    outcome = "PUSH (I dealer i " + p->getName() + "imaju BLACKJACK)";
+                    p->push();
+                }
+                else
+                {
+                    outcome = "LOSE (Dealer Blackjack)";
+                    if (!isSplit)
+                        p->lose();
+                }
             }
-            else if (dbust)
+            else if (!isSplit && h.isBlackjack())
             {
-                std::cout << "WIN (Dealer bust)";
-                p->addMoney(baseBet * 2);
-            }
-            else if (h.getValue() > dv)
-            {
-                std::cout << "WIN";
-                p->addMoney(baseBet * 2);
-            }
-            else if (h.getValue() < dv)
-            {
-                std::cout << "LOSE";
+                outcome = "BLACKJACK (x2.5)";
+                p->win(2.5);
             }
             else
             {
-                std::cout << "PUSH";
-                p->addMoney(baseBet);
+                if (h.isBust())
+                    outcome = "LOSE (Bust)";
+                else if (dbust)
+                    outcome = "WIN (Dealer bust)";
+                else if (h.getValue() > dv)
+                    outcome = "WIN";
+                else if (h.getValue() < dv)
+                    outcome = "LOSE";
+                else
+                    outcome = "PUSH";
+
+                if (!isSplit)
+                {
+                    if (outcome == "WIN" || outcome == "WIN (Dealer bust)")
+                        p->win(2.0);
+                    else if (outcome == "PUSH")
+                        p->push();
+                    else
+                        p->lose();
+                }
+                else
+                {
+                    if (outcome == "WIN" || outcome == "WIN (Dealer bust)")
+                        p->addMoney(baseBet * 2);
+                    else if (outcome == "PUSH")
+                        p->addMoney(baseBet);
+                }            
             }
 
-            std::cout << "\n";
-        }
-        p->clearBet();
+            std::string label;
+            if (isSplit)
+                label = " Split " + std::to_string(i + 1);
+            else
+                label = p->getName();
 
-        std::cout << " -> Balance: " << p->getMoney() << "\n\n";
+            std::string line = label + ": " +
+                h.toString() + " (Value = " + std::to_string(h.getValue()) + ") -> " + outcome;
+
+            resultLines.push_back(line);
+        }
+
+        if (isSplit)
+            p->clearBet();
+
+        resultLines.push_back(" -> Balance: " + std::to_string(static_cast<int>(p->getMoney())));
+        resultLines.push_back("");
     }
+}
+
+void BlackjackGame::printResult() const
+{
+    std::cout << "\n=== REZULTATI ===\n";
+    std::cout << dealerResultLine << "\n\n";
+
+    for (const std::string& line : resultLines)
+        std::cout << line << "\n";
+
+    std::cout << "\n";
 }
 
 bool BlackjackGame::anyPlayerAlive() const
@@ -422,19 +440,29 @@ bool BlackjackGame::playRound()
         std::cout << "Nema vise igraca s novcem. Igra zavrsava.\n";
         return false;
     }
-    
-    deck.reset();
-    deck.shuffle();
+
+    if (deck.remaining() < shuffle_threshold)
+    {
+        std::cout << "\nSpil se ponovno mijesa....";
+        delay(1200);
+
+        deck.reset();
+        deck.shuffle();
+    }
 
     std::cout << "\n=== ULOZI ZELJENU SVOTU NOVCA===\n";
     
     takeBets();
+
+
     dealInitial();
     printInitialHands();
 
     playersTurn();
     dealerTurn();
 
+    delay(1500);
+    resolveBets();
     printResult();
 
     return true;

@@ -20,6 +20,18 @@ const Card& Hand::getCard(int index) const
 	return cards.at(index);
 }
 
+int Hand::getValueForSplit(const Card& c) const
+{
+	Card::Number number = c.getNumber();
+
+	if (number == Card::Number::Ace)
+		return 11;
+	if (number == Card::Number::Jack || number == Card::Number::Queen || number == Card::Number::King)
+		return 10;
+
+	return static_cast<int>(number);
+}
+
 int Hand::getValue() const
 {
 	int total = 0;
@@ -71,7 +83,10 @@ bool Hand::isFirstMove() const
 
 bool Hand::canSplit() const 
 {
-	return cards.size() == 2 && cards[0].getNumber() == cards[1].getNumber();
+	if (cards.size() != 2)
+		return false;
+
+	return getValueForSplit(cards[0]) == getValueForSplit(cards[1]);
 }
 
 Card Hand::moveSecondCard()
