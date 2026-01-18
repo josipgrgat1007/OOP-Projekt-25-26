@@ -26,6 +26,7 @@ public:
 	const Hand& getHand() const;
 
 	virtual void clearHand();
+	void hit(Deck& deck, int handIndex);
 	void hit(Deck& deck);
 	
 	double getMoney() const { return money; }
@@ -55,6 +56,7 @@ public:
 
 	virtual bool canSplitNow() const { return false; }
 	virtual bool tryStartSplit(Deck& deck) { return false; }
+	virtual bool isAI() const { return false; }
 };
 
 #endif

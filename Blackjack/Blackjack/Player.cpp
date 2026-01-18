@@ -24,9 +24,14 @@ void Player::clearHand()
     hand.clear();
 }
 
+void Player::hit(Deck& deck, int handIndex)
+{
+    getHandByIndex(handIndex).addCard(deck.draw());
+}
+
 void Player::hit(Deck& deck)
 {
-    hand.addCard(deck.draw());
+    hit(deck, 0);
 }
 
 void Player::placeBet(double amount)
