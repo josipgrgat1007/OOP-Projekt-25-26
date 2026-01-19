@@ -148,14 +148,9 @@
     <ClInclude Include="Hand.h" />
     <ClInclude Include="HumanPlayer.h" />
     <ClInclude Include="Player.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Blackjack.aps" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\..\..\..\..\Downloads\Blackjack.ico" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Blackjack.rc" />

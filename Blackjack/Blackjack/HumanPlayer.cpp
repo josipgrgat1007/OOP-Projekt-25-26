@@ -20,7 +20,7 @@ Action HumanPlayer::decideAction()
 
 		if (hand.isFirstMove()) 
 			if (hand.canSplit()) 
-				std::cout << "  -> [d]ouble/s[p]lit/[h]it/[s]tand?";
+				std::cout << "  -> [d]ouble/s[p]lit/[h]it/[s]tand? ";
 			else 
 				std::cout << " -> [d]ouble/[h]it/[s]tand? ";
 		else 

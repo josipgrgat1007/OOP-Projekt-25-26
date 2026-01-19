@@ -319,8 +319,6 @@ void BlackjackGame::playersTurn()
 
         delay(1000);
     }
-    
-    std::cout << "-------------------------\n";
 }
 
 
@@ -459,9 +457,14 @@ void BlackjackGame::printResult() const
 {
     std::cout << "\n=== REZULTATI ===\n";
     std::cout << dealerResultLine << "\n";
+    std::cout << "-------------------------\n";
+    delay(800);
 
     for (const std::string& line : resultLines)
+    {
         std::cout << line << "\n";
+        delay(800);
+    }
 }
 
 bool BlackjackGame::anyPlayerAlive() const

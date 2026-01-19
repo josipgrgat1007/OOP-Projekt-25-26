@@ -40,7 +40,7 @@ int Deck::remaining() const
 Card Deck::draw()
 {
     if(cards.empty())
-        throw std::runtime_error("Deck is empty!");
+        throw std::runtime_error("Deck je prazan!");
 
     Card card = cards.back();
     cards.pop_back();

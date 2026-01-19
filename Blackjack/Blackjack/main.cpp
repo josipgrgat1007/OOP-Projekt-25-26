@@ -1,8 +1,12 @@
 ﻿#include "BlackjackGame.h"
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
 
 int main()
 {
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
+
 	try
 	{
         BlackjackGame game;
@@ -21,6 +25,6 @@ int main()
     }
     catch (const std::exception& e)
     {
-        std::cout << "Fatal error: " << e.what() << "\n";
+        std::cout << "Error: " << e.what() << "\n";
     }
 }

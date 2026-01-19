@@ -23,6 +23,7 @@ std::string Card::toString() const
 	case Suit::Diamonds: suitStr = "Diamonds"; break;
 	case Suit::Spades: suitStr = "Spades"; break;
 	case Suit::Clubs: suitStr = "Clubs"; break;
+	default: suitStr = "?"; break;
 	}
 
 	switch (number)
@@ -40,6 +41,7 @@ std::string Card::toString() const
 	case Number::Queen: numberStr = "Q"; break;
 	case Number::King: numberStr = "K"; break;
 	case Number::Ace: numberStr = "A"; break;
+	default: numberStr = "?"; break;
 	}
 
 	return numberStr + " of " + suitStr;

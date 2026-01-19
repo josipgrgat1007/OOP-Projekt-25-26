@@ -27,7 +27,6 @@ public:
 
 	virtual void clearHand();
 	void hit(Deck& deck, int handIndex);
-	void hit(Deck& deck);
 	
 	double getMoney() const { return money; }
 	double getBet() const { return bet; }
